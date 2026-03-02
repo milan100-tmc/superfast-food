@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SuperFast">
+<meta name="theme-color" content="#FFD600">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Super Fast Food</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0a0a;--dark:#141414;--card:#1c1c1c;--border:#2a2a2a;--yellow:#FFD600;--red:#E53935;--white:#f5f5f5;--muted:#888;--green:#2e7d32;--purple:#7b1fa2;--teal:#00838f;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);color:var(--white);font-family:'Nunito',sans-serif;min-height:100vh;overscroll-behavior:none;}
+
+#installBanner{display:none;position:fixed;bottom:80px;left:12px;right:12px;background:var(--yellow);color:var(--black);border-radius:14px;padding:14px 16px;z-index:300;box-shadow:0 6px 30px rgba(255,214,0,.4);flex-direction:row;align-items:center;gap:12px;}
+#installBanner.show{display:flex;}
+.install-icon{font-size:26px;}.install-text{flex:1;}.install-text strong{font-size:14px;display:block;}.install-text span{font-size:11px;}
+.install-btns{display:flex;flex-direction:column;gap:5px;}
+.btn-install{background:var(--black);color:var(--yellow);border:none;border-radius:8px;padding:7px 12px;font-family:'Bebas Neue',sans-serif;font-size:15px;cursor:pointer;white-space:nowrap;}
+.btn-dismiss{background:none;border:none;color:var(--black);font-size:20px;cursor:pointer;opacity:.6;}
+
+.hero{background:var(--dark);border-bottom:3px solid var(--yellow);padding:18px 14px 14px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,214,0,0.03) 20px,rgba(255,214,0,0.03) 40px);}
+.hero-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(42px,10vw,76px);color:var(--yellow);line-height:.9;letter-spacing:2px;position:relative;}
+.hero-logo span{color:var(--red);}
+.hero-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:2px;text-transform:uppercase;}
+.hero-info{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px;font-size:13px;}
+.hero-info a{color:var(--yellow);text-decoration:none;font-weight:700;}
+.badge{background:var(--red);color:#fff;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:1px;margin-top:6px;display:inline-block;}
+
+.tabs{display:flex;overflow-x:auto;background:var(--dark);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;padding:11px 15px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab-btn.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+
+.layout{display:flex;}
+.menu-area{flex:1;padding:14px 12px 110px;min-width:0;}
+.section{display:none;}.section.active{display:block;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--yellow);letter-spacing:2px;margin-bottom:12px;border-left:5px solid var(--red);padding-left:12px;}
+.sub-header{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--red);letter-spacing:1px;margin:16px 0 9px;}
+.info-note{font-size:11px;color:var(--muted);background:#1a1500;border:1px solid #2a2500;border-radius:8px;padding:7px 11px;margin-bottom:10px;line-height:1.5;}
+.info-note strong{color:var(--yellow);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+
+/* CONFIGURATOR CARD */
+.config-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .15s;}
+.config-card:hover{border-color:#3a3a3a;}
+.cfg-header{padding:13px 14px 9px;}
+.cfg-title{font-weight:800;font-size:15px;color:var(--white);line-height:1.3;}
+.cfg-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.cfg-price{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow);margin-top:5px;}
+.cfg-price small{font-size:13px;color:var(--muted);}
+
+.opt-group{border-top:1px solid var(--border);padding:9px 13px;}
+.opt-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;}
+.opt-label .counter{background:var(--red);color:#fff;border-radius:4px;padding:1px 6px;font-size:9px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--white);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1;}
+.chip:hover{border-color:#666;}
+.chip.on{background:var(--yellow);color:var(--black);border-color:var(--yellow);}
+.chip.on.gc{background:#ab47bc;border-color:#ab47bc;color:#fff;}
+.chip.on.sc{background:var(--teal);border-color:var(--teal);color:#fff;}
+.chip.on.ec{background:var(--green);border-color:var(--green);color:#fff;}
+.chip.on.sl{background:#546e7a;border-color:#546e7a;color:#fff;}
+.chip.off{opacity:.3;cursor:not-allowed;}
+
+.btn-add{width:100%;padding:12px;background:var(--red);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;cursor:pointer;transition:background .15s;}
+.btn-add:hover{background:#c62828;}
+.btn-add:disabled{background:#222;color:#555;cursor:not-allowed;}
+
+/* SIMPLE CARD */
+.item-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:13px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;user-select:none;}
+.item-card:hover{border-color:#3a3a3a;}
+.item-card.selected{border-color:var(--red);background:#1f1010;}
+.item-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;background:var(--red);color:#fff;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:900;display:grid;place-items:center;}
+.item-name{font-weight:800;font-size:13px;color:var(--white);line-height:1.3;padding-right:22px;}
+.item-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.item-price{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--yellow);margin-top:7px;}
+.qty-ctrl{display:flex;align-items:center;gap:6px;margin-top:7px;}
+.qty-btn{background:var(--border);border:none;color:var(--white);width:28px;height:28px;border-radius:6px;font-size:18px;cursor:pointer;display:grid;place-items:center;flex-shrink:0;}
+.qty-btn:active{background:var(--yellow);color:var(--black);}
+.qty-num{font-weight:800;font-size:14px;min-width:18px;text-align:center;}
+
+/* ORDER PANEL */
+.order-panel{width:285px;flex-shrink:0;background:var(--dark);border-left:2px solid var(--border);padding:15px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+.order-panel h2{font-family:'Bebas Neue',sans-serif;font-size:23px;color:var(--yellow);letter-spacing:2px;margin-bottom:10px;}
+.order-list{flex:1;overflow-y:auto;}
+.order-entry{padding:8px 0;border-bottom:1px solid var(--border);}
+.oe-top{display:flex;justify-content:space-between;align-items:flex-start;gap:5px;}
+.oe-name{font-size:12px;font-weight:800;flex:1;line-height:1.3;}
+.oe-price{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--yellow);white-space:nowrap;}
+.oe-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;padding:0 2px;flex-shrink:0;}
+.oe-details{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.order-empty{color:var(--muted);font-size:12px;text-align:center;margin-top:28px;line-height:1.7;}
+.order-total{margin-top:10px;padding-top:10px;border-top:2px solid var(--yellow);}
+.ot-row{display:flex;justify-content:space-between;font-weight:800;font-size:14px;align-items:center;}
+.ot-price{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--yellow);}
+.btn-order{width:100%;margin-top:9px;background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;cursor:pointer;}
+.btn-clear{width:100%;margin-top:7px;background:var(--border);color:var(--muted);border:none;border-radius:8px;padding:8px;font-size:11px;cursor:pointer;}
+.call-bar{margin-top:10px;background:var(--card);border-radius:8px;padding:9px;text-align:center;font-size:11px;color:var(--muted);}
+.call-bar a{color:var(--yellow);font-weight:800;font-size:14px;text-decoration:none;display:block;margin-top:4px;padding:5px;border-radius:6px;background:rgba(255,214,0,.08);}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:999;align-items:center;justify-content:center;padding:14px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--dark);border:2px solid var(--yellow);border-radius:16px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;}
+.modal h2{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);margin-bottom:11px;}
+.me{padding:8px 0;border-bottom:1px solid var(--border);}
+.me-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:800;}
+.me-price{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--yellow);white-space:nowrap;}
+.me-details{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;}
+.modal-total{display:flex;justify-content:space-between;align-items:center;margin-top:13px;}
+.modal-total span:first-child{font-weight:800;font-size:15px;}
+.mtp{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);}
+.modal-actions{display:flex;gap:10px;margin-top:15px;}
+.modal-actions button{flex:1;padding:13px;border-radius:10px;border:none;font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;letter-spacing:1px;}
+.modal-close{background:var(--border);color:var(--white);}
+.modal-call{background:var(--red);color:#fff;font-size:20px;}
+
+.mobile-cart-btn{display:none;position:fixed;bottom:14px;right:14px;background:var(--red);color:#fff;border:none;border-radius:50px;padding:13px 18px;font-family:'Bebas Neue',sans-serif;font-size:15px;cursor:pointer;z-index:200;box-shadow:0 4px 24px rgba(229,57,53,.6);align-items:center;gap:7px;}
+.badge-count{background:var(--yellow);color:var(--black);border-radius:50%;padding:2px 7px;font-size:12px;font-weight:900;}
+.order-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:149;}
+
+@media(max-width:700px){
+  .order-panel{position:fixed;right:0;top:0;bottom:0;z-index:150;transform:translateX(110%);transition:transform .3s ease;width:min(285px,92vw);}
+  .order-panel.open{transform:translateX(0);box-shadow:-8px 0 40px rgba(0,0,0,.8);}
+  .order-overlay.open{display:block;}
+  .mobile-cart-btn{display:flex;}
+  #installBanner{bottom:76px;}
+}
+</style>
+</head>
+<body>
+
+<div id="installBanner">
+  <div class="install-icon">📲</div>
+  <div class="install-text"><strong>Installer l'application</strong><span>Accès depuis votre écran d'accueil</span></div>
+  <div class="install-btns">
+    <button class="btn-install" id="btnInstall">INSTALLER</button>
+    <button class="btn-dismiss" onclick="dismissBanner()">✕</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-logo">SUPER <span>FAST</span><br>FOOD</div>
+  <div class="hero-sub">9 Rue François Mitterrand, 63300 Thiers</div>
+  <div class="hero-info">
+    <a href="tel:0744878982">📱 07-44-87-89-82</a>
+    <a href="tel:0956676269">☎️ 09-56-67-62-69</a>
+  </div>
+  <div class="badge">🛵 Livraison dès 40€ · Sur place · À emporter</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="tacos">Tacos</button>
+  <button class="tab-btn" data-tab="burgers">Burgers</button>
+  <button class="tab-btn" data-tab="sandwich">Sandwich</button>
+  <button class="tab-btn" data-tab="naan">Naan</button>
+  <button class="tab-btn" data-tab="assiettes">Assiettes</button>
+  <button class="tab-btn" data-tab="bols">Bols</button>
+  <button class="tab-btn" data-tab="baguette">Baguette</button>
+  <button class="tab-btn" data-tab="texmex">Tex Mex</button>
+  <button class="tab-btn" data-tab="panini">Panini</button>
+  <button class="tab-btn" data-tab="crousty">Crousty</button>
+  <button class="tab-btn" data-tab="enfants">Enfants</button>
+  <button class="tab-btn" data-tab="boissons">Boissons</button>
+  <button class="tab-btn" data-tab="desserts">Desserts</button>
+</div>
+
+<div class="layout">
+<div class="menu-area">
+
+<div class="section active" id="sec-tacos">
+  <div class="section-title">Tacos</div>
+  <div class="info-note"><strong>Option Menu: +€3,00</strong> pour ajouter Frites & Boisson</div>
+  <div class="sub-header">Tacos</div>
+  <div class="grid" id="g-tacos"></div>
+  <div class="sub-header">Tacos Gratinés</div>
+  <div class="grid" id="g-gratine"></div>
+</div>
+
+<div class="section" id="sec-burgers">
+  <div class="section-title">Burgers</div>
+  <div class="grid" id="g-burgers"></div>
+</div>
+
+<div class="section" id="sec-sandwich">
+  <div class="section-title">Sandwichs</div>
+  <div class="grid" id="g-sandwich"></div>
+</div>
+
+<div class="section" id="sec-naan">
+  <div class="section-title">Naan</div>
+  <div class="grid" id="g-naan"></div>
+</div>
+
+<div class="section" id="sec-assiettes">
+  <div class="section-title">Assiettes</div>
+  <div class="info-note">Viande au choix · Frites · Salade verte · Tomates · Oignons · Cornichons · Pain</div>
+  <div class="grid" id="g-assiettes"></div>
+</div>
+
+<div class="section" id="sec-bols">
+  <div class="section-title">Bols</div>
+  <div class="info-note">Viande au choix · Frites · Gratiné Mozzarella</div>
+  <div class="grid" id="g-bols"></div>
+</div>
+
+<div class="section" id="sec-baguette">
+  <div class="section-title">Baguette Fourrée</div>
+  <div class="info-note">Viande au choix · Frites · Salade · Tomate · Oignon · Gratiné au choix</div>
+  <div class="grid" id="g-baguette"></div>
+</div>
+
+<div class="section" id="sec-texmex">
+  <div class="section-title">Tex Mex</div>
+  <div class="grid">
+    <div class="item-card" data-id="tx1" data-price="5"   data-name="Wings x6"><div class="item-name">Wings x6</div><div class="item-price">€5,00</div></div>
+    <div class="item-card" data-id="tx2" data-price="9.5" data-name="Wings x12"><div class="item-name">Wings x12</div><div class="item-price">€9,50</div></div>
+    <div class="item-card" data-id="tx3" data-price="5"   data-name="Tenders x6"><div class="item-name">Tenders x6</div><div class="item-price">€5,00</div></div>
+    <div class="item-card" data-id="tx4" data-price="9.5" data-name="Tenders x12"><div class="item-name">Tenders x12</div><div class="item-price">€9,50</div></div>
+    <div class="item-card" data-id="tx5" data-price="5"   data-name="Nuggets x6"><div class="item-name">Nuggets x6</div><div class="item-price">€5,00</div></div>
+    <div class="item-card" data-id="tx6" data-price="9.5" data-name="Nuggets x12"><div class="item-name">Nuggets x12</div><div class="item-price">€9,50</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-panini">
+  <div class="section-title">Panini</div>
+  <div class="grid">
+    <div class="item-card" data-id="p1" data-price="6"   data-name="Panini 3 Fromages"><div class="item-name">Panini 3 Fromages</div><div class="item-price">€6,00</div></div>
+    <div class="item-card" data-id="p2" data-price="3.5" data-name="Panini Nutella"><div class="item-name">Panini Nutella</div><div class="item-price">€3,50</div></div>
+    <div class="item-card" data-id="p3" data-price="6.5" data-name="Panini Kebab"><div class="item-name">Panini Kebab</div><div class="item-price">€6,50</div></div>
+    <div class="item-card" data-id="p4" data-price="7"   data-name="Panini Viande Hachée"><div class="item-name">Panini Viande Hachée</div><div class="item-price">€7,00</div></div>
+    <div class="item-card" data-id="p5" data-price="7"   data-name="Panini Poulet Tandoori"><div class="item-name">Panini Poulet Tandoori</div><div class="item-price">€7,00</div></div>
+    <div class="item-card" data-id="p6" data-price="7"   data-name="Panini Poulet Curry"><div class="item-name">Panini Poulet Curry</div><div class="item-price">€7,00</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-crousty">
+  <div class="section-title">Crousty & Caprison</div>
+  <div class="grid">
+    <div class="item-card" data-id="cr1" data-price="10"  data-name="Crousty"><div class="item-name">Crousty</div><div class="item-desc">Riz, viande au choix, sauce</div><div class="item-price">€10,00</div></div>
+    <div class="item-card" data-id="cr2" data-price="4.5" data-name="Caprison"><div class="item-name">Caprison</div><div class="item-price">€4,50</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-enfants">
+  <div class="section-title">Menu Enfants</div>
+  <div class="grid">
+    <div class="item-card" data-id="me1" data-price="6.9" data-name="Burger / 6 Nuggets Caprison"><div class="item-name">Burger Caprison / 6 Nuggets Caprison</div><div class="item-price">€6,90</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-boissons">
+  <div class="section-title">Boissons & Frites</div>
+  <div class="grid">
+    <div class="item-card" data-id="bv1" data-price="1.5" data-name="Bouteille d'eau 50cl"><div class="item-name">Bouteille d'eau 50cl</div><div class="item-price">€1,50</div></div>
+    <div class="item-card" data-id="bv2" data-price="2"   data-name="Boisson 33cl"><div class="item-name">Boisson 33cl</div><div class="item-price">€2,00</div></div>
+    <div class="item-card" data-id="bv3" data-price="3.9" data-name="Boisson 2,0L"><div class="item-name">Boisson 2,0L</div><div class="item-price">€3,90</div></div>
+    <div class="item-card" data-id="bv4" data-price="2.9" data-name="Boisson 1,25L"><div class="item-name">Boisson 1,25L</div><div class="item-price">€2,90</div></div>
+    <div class="item-card" data-id="bv5" data-price="1.5" data-name="Café"><div class="item-name">Café</div><div class="item-price">€1,50</div></div>
+    <div class="item-card" data-id="bv6" data-price="2.5" data-name="Thé"><div class="item-name">Thé</div><div class="item-price">€2,50</div></div>
+    <div class="item-card" data-id="bv7" data-price="3"   data-name="Frite Petite"><div class="item-name">Frite Petite</div><div class="item-price">€3,00</div></div>
+    <div class="item-card" data-id="bv8" data-price="4.5" data-name="Frite Grande"><div class="item-name">Frite Grande</div><div class="item-price">€4,50</div></div>
+  </div>
+</div>
+
+<div class="section" id="sec-desserts">
+  <div class="section-title">Desserts</div>
+  <div class="grid">
+    <div class="item-card" data-id="d1" data-price="2.5" data-name="Gâteau au chocolat"><div class="item-name">Gâteau au chocolat</div><div class="item-price">€2,50</div></div>
+    <div class="item-card" data-id="d2" data-price="3.5" data-name="Tiramisu"><div class="item-name">Tiramisu</div><div class="item-price">€3,50</div></div>
+    <div class="item-card" data-id="d3" data-price="2.5" data-name="Flan"><div class="item-name">Flan</div><div class="item-price">€2,50</div></div>
+    <div class="item-card" data-id="d4" data-price="3.5" data-name="Tarte au citron"><div class="item-name">Tarte au citron</div><div class="item-price">€3,50</div></div>
+  </div>
+</div>
+
+</div><!-- /menu-area -->
+
+<div class="order-panel" id="orderPanel">
+  <h2>🛒 Commande</h2>
+  <div class="order-list" id="orderList">
+    <div class="order-empty">Aucun article.<br><br>Configurez un plat puis<br>appuyez ➕ AJOUTER 👆</div>
+  </div>
+  <div class="order-total" id="orderTotal" style="display:none">
+    <div class="ot-row"><span>TOTAL</span><span class="ot-price" id="totalPrice">€0,00</span></div>
+    <button class="btn-order" onclick="openModal()">📋 VOIR MA COMMANDE</button>
+    <button class="btn-clear" onclick="clearAll()">🗑️ Vider la commande</button>
+  </div>
+  <div class="call-bar">
+    📞 Commander par téléphone :
+    <a href="tel:0744878982">📱 07-44-87-89-82</a>
+    <a href="tel:0956676269">☎️ 09-56-67-62-69</a>
+  </div>
+</div>
+</div><!-- /layout -->
+
+<button class="mobile-cart-btn" id="mobileCartBtn" onclick="togglePanel()">
+  🛒 Commande <span class="badge-count" id="mobileBadge">0</span>
+</button>
+<div class="order-overlay" id="orderOverlay" onclick="togglePanel()"></div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>📋 Ma Commande</h2>
+    <div id="modalItems"></div>
+    <div class="modal-total"><span>TOTAL</span><span class="mtp" id="modalTotal">€0,00</span></div>
+    <div class="modal-actions">
+      <button class="modal-close" onclick="closeModal()">✕ Retour</button>
+      <button class="modal-call" onclick="callNow()">📞 APPELER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════
+const VIANDES = ['Kebab','Poulet Curry','Poulet Tandoori','Tenders','Cordon Bleu','Nuggets','Falafel','Steak','Merguez'];
+const GRATINES = ['Mozzarella','Raclette','Cheddar','Tartiflette','Chèvre Miel','Boursin'];
+const SAUCES = ['Ketchup','Algérienne','Harissa','Blanche','Sauce Burger','Samouraï','Mayonnaise','Andalouse','Curry','Barbecue','Fromagère'];
+const SAUCE_EXTRA = {'Fromagère': 0.50};
+const SALAD_OPTS = ['Avec tout ✓','Sans salade','Sans tomate','Sans oignon','Sans salade & tomate','Sans salade & oignon','Sans salade, tomate & oignon'];
+const EXTRAS_BURGER = [
+  {label:'+ Œuf  (+€0,60)', price:0.60},
+  {label:'+ Frites (+€1,50)', price:1.50},
+  {label:'+ Boisson (+€2,00)', price:2.00},
+];
+const EXTRAS_SIMPLE = [
+  {label:'+ Frites (+€1,50)', price:1.50},
+  {label:'+ Boisson (+€2,00)', price:2.00},
+];
+
+// ══════════════════════════════════════
+// CART
+// ══════════════════════════════════════
+let cart = [];
+let uidC = 0;
+
+function cartAdd(name, base, extra, details) {
+  cart.push({uid: uidC++, name, total: base + extra, details});
+  renderOrder();
+}
+function cartRemove(uid) { cart = cart.filter(e => e.uid !== uid); renderOrder(); }
+function clearAll() {
+  cart = [];
+  Object.keys(SC).forEach(id => {
+    delete SC[id];
+    const c = document.querySelector(`.item-card[data-id="${id}"]`);
+    if(c){ c.classList.remove('selected'); const q=c.querySelector('.qty-ctrl'); if(q) q.remove(); }
+  });
+  renderOrder();
+}
+
+// ══════════════════════════════════════
+// STATE STORES
+// ══════════════════════════════════════
+const TS = {}; // tacos states  id -> {viandes[], gratine, sauces[], menu}
+const BS = {}; // burger states id -> {salad, sauces[], extras[]}
+const VS = {}; // viande-only   id -> {viandes[], sauces[]}
+
+function getTS(id){ if(!TS[id]) TS[id]={viandes:[],gratine:null,sauces:[],menu:false}; return TS[id]; }
+function getBS(id){ if(!BS[id]) BS[id]={salad:null,sauces:[],extras:[]}; return BS[id]; }
+function getVS(id){ if(!VS[id]) VS[id]={viandes:[],sauces:[]}; return VS[id]; }
+
+// ══════════════════════════════════════
+// TACOS CARD BUILDER
+// ══════════════════════════════════════
+function buildTacosCard(id) {
+  const el = document.getElementById('card-'+id);
+  if(!el) return;
+  const item = el._item;
+  const isG = el._isG;
+  const s = getTS(id);
+
+  let extra = s.sauces.reduce((a,sc)=> a+(SAUCE_EXTRA[sc]||0),0) + (s.menu?3:0);
+  const total = item.price + extra;
+  const vDone = s.viandes.length === item.viandes;
+  const gDone = !isG || s.gratine !== null;
+  const canAdd = vDone && gDone;
+
+  el.innerHTML = `
+    <div class="cfg-header">
+      <div class="cfg-title">${item.name}</div>
+      <div class="cfg-price">€${fmt(total)}${extra>0?`<small> (base €${fmt(item.price)} + options)</small>`:''}</div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">🥩 Viande <span class="counter">${s.viandes.length}/${item.viandes}</span></div>
+      <div class="chips">${VIANDES.map(v=>{
+        const on=s.viandes.includes(v), maxed=!on&&s.viandes.length>=item.viandes;
+        return `<button class="chip${on?' on':''}${maxed?' off':''}" onclick="tV('${id}','${v}',${item.viandes})">${v}</button>`;
+      }).join('')}</div>
+    </div>
+    ${isG?`<div class="opt-group">
+      <div class="opt-label">🧀 Gratiné <span class="counter">${s.gratine?'1':'0'}/1</span></div>
+      <div class="chips">${GRATINES.map(g=>{
+        const on=s.gratine===g;
+        return `<button class="chip gc${on?' on gc':''}" onclick="tG('${id}','${g}')">${g}</button>`;
+      }).join('')}</div>
+    </div>`:''}
+    <div class="opt-group">
+      <div class="opt-label">🥫 Sauce (max 2) <span class="counter">${s.sauces.length}/2</span></div>
+      <div class="chips">${SAUCES.map(sc=>{
+        const on=s.sauces.includes(sc), maxed=!on&&s.sauces.length>=2;
+        return `<button class="chip sc${on?' on sc':''}${maxed?' off':''}" onclick="tSauce('${id}','${sc}','TS')">${sc}${sc==='Fromagère'?' (+€0,50)':''}</button>`;
+      }).join('')}</div>
+    </div>
+    <div class="opt-group">
+      <div class="chips">
+        <button class="chip ec${s.menu?' on ec':''}" onclick="tMenu('${id}')">🍟 Menu Frites &amp; Boisson (+€3,00)</button>
+      </div>
+    </div>
+    <button class="btn-add" ${canAdd?'':'disabled'} onclick="addTacos('${id}')">
+      ${canAdd?'➕ AJOUTER À LA COMMANDE':`⚠ Choisissez ${item.viandes} viande${item.viandes>1?'s':''}${isG?' + gratiné':''}`}
+    </button>`;
+}
+
+function tV(id,v,max){ const s=getTS(id); const i=s.viandes.indexOf(v); if(i>=0) s.viandes.splice(i,1); else if(s.viandes.length<max) s.viandes.push(v); buildTacosCard(id); }
+function tG(id,g){ const s=getTS(id); s.gratine=s.gratine===g?null:g; buildTacosCard(id); }
+function tMenu(id){ getTS(id).menu=!getTS(id).menu; buildTacosCard(id); }
+function tSauce(id,sc,store){
+  const s = store==='TS'?getTS(id):store==='BS'?getBS(id):getVS(id);
+  const arr = s.sauces;
+  const i=arr.indexOf(sc); if(i>=0) arr.splice(i,1); else if(arr.length<2) arr.push(sc);
+  if(store==='TS') buildTacosCard(id);
+  else if(store==='BS') buildBurgerCard(id);
+  else buildViandeCard(id);
+}
+
+function addTacos(id){
+  const el=document.getElementById('card-'+id); if(!el) return;
+  const item=el._item, isG=el._isG, s=getTS(id);
+  let extra=0; const det=[];
+  det.push('🥩 '+s.viandes.join(', '));
+  if(isG && s.gratine) det.push('🧀 '+s.gratine);
+  s.sauces.forEach(sc=>{ extra+=SAUCE_EXTRA[sc]||0; });
+  if(s.sauces.length) det.push('🥫 '+s.sauces.map(sc=>sc==='Fromagère'?'Fromagère (+€0,50)':sc).join(', '));
+  if(s.menu){ extra+=3; det.push('🍟 Menu Frites & Boisson (+€3,00)'); }
+  cartAdd(item.name, item.price, extra, det);
+  TS[id]={viandes:[],gratine:null,sauces:[],menu:false};
+  buildTacosCard(id);
+}
+
+// ══════════════════════════════════════
+// BURGER/SANDWICH/NAAN CARD
+// ══════════════════════════════════════
+function buildBurgerCard(id){
+  const el=document.getElementById('card-'+id); if(!el) return;
+  const item=el._item;
+  const s=getBS(id);
+  let extra = s.sauces.reduce((a,sc)=>a+(SAUCE_EXTRA[sc]||0),0)
+    + s.extras.reduce((a,e)=>a+e,0);
+  const total=item.price+extra;
+
+  el.innerHTML=`
+    <div class="cfg-header">
+      <div class="cfg-title">${item.name}</div>
+      <div class="cfg-desc">${item.desc} · Salade, tomate, oignon</div>
+      <div class="cfg-price">€${fmt(total)}${extra>0?`<small> (+options)</small>`:''}</div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">🥗 Garniture</div>
+      <div class="chips">${SALAD_OPTS.map(o=>{
+        const on=s.salad===o;
+        return `<button class="chip sl${on?' on sl':''}" onclick="bSalad('${id}','${o}')">${o}</button>`;
+      }).join('')}</div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">🥫 Sauce (max 2) <span class="counter">${s.sauces.length}/2</span></div>
+      <div class="chips">${SAUCES.map(sc=>{
+        const on=s.sauces.includes(sc), maxed=!on&&s.sauces.length>=2;
+        return `<button class="chip sc${on?' on sc':''}${maxed?' off':''}" onclick="tSauce('${id}','${sc}','BS')">${sc}${sc==='Fromagère'?' (+€0,50)':''}</button>`;
+      }).join('')}</div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">➕ Extras</div>
+      <div class="chips">${EXTRAS_BURGER.map((e,i)=>{
+        const on=s.extras[i]>0;
+        return `<button class="chip ec${on?' on ec':''}" onclick="bExtra('${id}',${i},${e.price})">${e.label}</button>`;
+      }).join('')}</div>
+    </div>
+    <button class="btn-add" onclick="addBurger('${id}')">➕ AJOUTER À LA COMMANDE</button>`;
+  el._item=item;
+}
+
+function bSalad(id,o){ const s=getBS(id); s.salad=s.salad===o?null:o; buildBurgerCard(id); }
+function bExtra(id,i,price){ const s=getBS(id); if(!s.extras) s.extras=[];
+  s.extras[i]=s.extras[i]?0:price; buildBurgerCard(id); }
+
+function addBurger(id){
+  const el=document.getElementById('card-'+id); if(!el) return;
+  const item=el._item, s=getBS(id);
+  let extra=0; const det=[];
+  if(s.salad && s.salad!=='Avec tout ✓') det.push('🥗 '+s.salad);
+  s.sauces.forEach(sc=>{ extra+=SAUCE_EXTRA[sc]||0; });
+  if(s.sauces.length) det.push('🥫 '+s.sauces.map(sc=>sc==='Fromagère'?'Fromagère (+€0,50)':sc).join(', '));
+  EXTRAS_BURGER.forEach((e,i)=>{ if(s.extras[i]){ extra+=s.extras[i]; det.push('➕ '+e.label); } });
+  cartAdd(item.name, item.price, extra, det);
+  BS[id]={salad:null,sauces:[],extras:[]};
+  buildBurgerCard(id);
+}
+
+// ══════════════════════════════════════
+// VIANDE-ONLY CARD (Assiette/Bol/Baguette)
+// ══════════════════════════════════════
+function buildViandeCard(id){
+  const el=document.getElementById('card-'+id); if(!el) return;
+  const item=el._item, s=getVS(id);
+  let extra=s.sauces.reduce((a,sc)=>a+(SAUCE_EXTRA[sc]||0),0);
+  const total=item.price+extra;
+  const canAdd=s.viandes.length===item.viandes;
+
+  el.innerHTML=`
+    <div class="cfg-header">
+      <div class="cfg-title">${item.name}</div>
+      <div class="cfg-price">€${fmt(total)}${extra>0?`<small> (+options)</small>`:''}</div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">🥩 Viande <span class="counter">${s.viandes.length}/${item.viandes}</span></div>
+      <div class="chips">${VIANDES.map(v=>{
+        const on=s.viandes.includes(v), maxed=!on&&s.viandes.length>=item.viandes;
+        return `<button class="chip${on?' on':''}${maxed?' off':''}" onclick="vV('${id}','${v}',${item.viandes})">${v}</button>`;
+      }).join('')}</div>
+    </div>
+    <div class="opt-group">
+      <div class="opt-label">🥫 Sauce (max 2) <span class="counter">${s.sauces.length}/2</span></div>
+      <div class="chips">${SAUCES.map(sc=>{
+        const on=s.sauces.includes(sc), maxed=!on&&s.sauces.length>=2;
+        return `<button class="chip sc${on?' on sc':''}${maxed?' off':''}" onclick="tSauce('${id}','${sc}','VS')">${sc}${sc==='Fromagère'?' (+€0,50)':''}</button>`;
+      }).join('')}</div>
+    </div>
+    <button class="btn-add" ${canAdd?'':'disabled'} onclick="addViande('${id}')">
+      ${canAdd?'➕ AJOUTER À LA COMMANDE':`⚠ Choisissez ${item.viandes} viande${item.viandes>1?'s':''}`}
+    </button>`;
+  el._item=item;
+}
+
+function vV(id,v,max){ const s=getVS(id); const i=s.viandes.indexOf(v); if(i>=0) s.viandes.splice(i,1); else if(s.viandes.length<max) s.viandes.push(v); buildViandeCard(id); }
+function addViande(id){
+  const el=document.getElementById('card-'+id); if(!el) return;
+  const item=el._item, s=getVS(id);
+  let extra=0; const det=['🥩 '+s.viandes.join(', ')];
+  s.sauces.forEach(sc=>{ extra+=SAUCE_EXTRA[sc]||0; });
+  if(s.sauces.length) det.push('🥫 '+s.sauces.map(sc=>sc==='Fromagère'?'Fromagère (+€0,50)':sc).join(', '));
+  cartAdd(item.name, item.price, extra, det);
+  VS[id]={viandes:[],sauces:[]};
+  buildViandeCard(id);
+}
+
+// ══════════════════════════════════════
+// GRID BUILDERS
+// ══════════════════════════════════════
+function makeCard(item, isG, type){
+  const d=document.createElement('div');
+  d.className='config-card'; d.id='card-'+item.id;
+  d._item=item; d._isG=isG||false;
+  return d;
+}
+
+function buildGrid(gridId, items, type, isG){
+  const g=document.getElementById(gridId); if(!g) return;
+  items.forEach(item=>{
+    const d=makeCard(item,isG,type);
+    g.appendChild(d);
+    // defer render so DOM is ready
+    requestAnimationFrame(()=>{
+      if(type==='tacos') buildTacosCard(item.id);
+      else if(type==='burger') buildBurgerCard(item.id);
+      else if(type==='viande') buildViandeCard(item.id);
+    });
+  });
+}
+
+buildGrid('g-tacos',    [{id:'t1',name:'Tacos 1 Viande',price:7,viandes:1},{id:'t2',name:'Tacos 2 Viandes',price:8.5,viandes:2},{id:'t3',name:'Tacos 3 Viandes',price:10,viandes:3}], 'tacos', false);
+buildGrid('g-gratine',  [{id:'tg1',name:'Tacos Gratiné 1 Viande',price:8,viandes:1},{id:'tg2',name:'Tacos Gratiné 2 Viandes',price:9.5,viandes:2},{id:'tg3',name:'Tacos Gratiné 3 Viandes',price:11.5,viandes:3}], 'tacos', true);
+buildGrid('g-burgers',  [{id:'b1',name:'Burger Américain',price:8.5,desc:'2 steaks frais, cornichons, œuf, Saint-Nectaire'},{id:'b2',name:'Cheese Burger',price:7.5,desc:'Steak, cheddar'},{id:'b3',name:'Double Cheese Burger',price:8.5,desc:'2 steaks, cheddar'},{id:'b4',name:'Crysty Burger',price:8.5,desc:'2 steaks, galette pomme de terre, cheddar'},{id:'b5',name:'Poulet Burger',price:8,desc:'Poulet, cheddar'},{id:'b6',name:'Naan Burger',price:10.5,desc:'2 steaks, cheddar'},{id:'b7',name:'Crysty Naan Burger',price:10.5,desc:'2 steaks, galette pomme de terre, cheddar'}], 'burger');
+buildGrid('g-sandwich', [{id:'sw1',name:'Sandwich Kebab',price:7.5,desc:'Kebab'},{id:'sw2',name:'Sandwich Tandoori',price:7.5,desc:'Poulet tandoori'},{id:'sw3',name:'Sandwich Curry',price:7.5,desc:'Poulet curry'},{id:'sw4',name:'Sandwich Tenders',price:7.5,desc:'Tenders'},{id:'sw5',name:'Sandwich Steak+Tenders',price:9.5,desc:'2 steaks, tenders'},{id:'sw6',name:'Sandwich Américain',price:9.5,desc:'2 steaks, œuf'}], 'burger');
+buildGrid('g-naan',     [{id:'n1',name:'Naan Kebab',price:8.5,desc:'Kebab'},{id:'n2',name:'Naan Poulet Tand./Curry',price:8.5,desc:'Poulet tandoori ou curry'},{id:'n3',name:'Naan Américain',price:9.5,desc:'2 steaks, œuf'},{id:'n4',name:'Naan Steak Tenders',price:9.5,desc:'2 steaks, tenders'},{id:'n5',name:'Naan Steak',price:8,desc:'2 steaks'},{id:'n6',name:'Naan Tenders',price:8,desc:'Tenders'}], 'burger');
+buildGrid('g-assiettes',[{id:'a1',name:'Assiette 1 Viande',price:10,viandes:1},{id:'a2',name:'Assiette 2 Viandes',price:11,viandes:2},{id:'a3',name:'Assiette 3 Viandes',price:12,viandes:3}], 'viande');
+buildGrid('g-bols',     [{id:'bo1',name:'Bol 1 Viande',price:8,viandes:1},{id:'bo2',name:'Bol 2 Viandes',price:9.5,viandes:2},{id:'bo3',name:'Bol 3 Viandes',price:10.5,viandes:3}], 'viande');
+buildGrid('g-baguette', [{id:'bg1',name:'Baguette 1 Viande',price:8,viandes:1},{id:'bg2',name:'Baguette 2 Viandes',price:9.5,viandes:2},{id:'bg3',name:'Baguette 3 Viandes',price:10.5,viandes:3}], 'viande');
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-'+btn.dataset.tab).classList.add('active');
+    btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  });
+});
+
+// ══════════════════════════════════════
+// SIMPLE CARDS (Tex Mex, Panini, etc.)
+// ══════════════════════════════════════
+const SC={};
+document.querySelectorAll('.item-card').forEach(card=>{
+  card.addEventListener('click',e=>{
+    if(e.target.classList.contains('qty-btn')) return;
+    const id=card.dataset.id;
+    if(SC[id]) SC[id].qty++; else SC[id]={name:card.dataset.name,price:parseFloat(card.dataset.price),qty:1};
+    card.classList.add('selected');
+    renderSQty(card,id);
+    renderOrder();
+  });
+});
+function renderSQty(card,id){
+  let c=card.querySelector('.qty-ctrl');
+  if(!c){c=document.createElement('div');c.className='qty-ctrl';card.appendChild(c);}
+  c.innerHTML=`<button class="qty-btn">−</button><span class="qty-num">${SC[id]?SC[id].qty:0}</span><button class="qty-btn">+</button>`;
+  c.querySelectorAll('.qty-btn')[0].addEventListener('click',e=>{e.stopPropagation();changeSQty(id,-1);});
+  c.querySelectorAll('.qty-btn')[1].addEventListener('click',e=>{e.stopPropagation();changeSQty(id,1);});
+}
+function changeSQty(id,d){
+  if(!SC[id]) return; SC[id].qty+=d;
+  const card=document.querySelector(`.item-card[data-id="${id}"]`);
+  if(SC[id].qty<=0){
+    delete SC[id];
+    if(card){card.classList.remove('selected');const q=card.querySelector('.qty-ctrl');if(q)q.remove();}
+  } else { if(card){const n=card.querySelector('.qty-num');if(n)n.textContent=SC[id].qty;} }
+  renderOrder();
+}
+
+// ══════════════════════════════════════
+// RENDER ORDER
+// ══════════════════════════════════════
+function renderOrder(){
+  const list=document.getElementById('orderList');
+  const totalDiv=document.getElementById('orderTotal');
+  const hasConfig=cart.length>0;
+  const hasSimple=Object.keys(SC).length>0;
+
+  if(!hasConfig && !hasSimple){
+    list.innerHTML='<div class="order-empty">Aucun article.<br><br>Configurez un plat puis<br>appuyez ➕ AJOUTER 👆</div>';
+    totalDiv.style.display='none';
+    document.getElementById('mobileBadge').textContent=0;
+    return;
+  }
+
+  let total=0, count=0, html='';
+
+  cart.forEach(e=>{
+    total+=e.total; count++;
+    html+=`<div class="order-entry">
+      <div class="oe-top">
+        <span class="oe-name">${e.name}</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span class="oe-price">€${fmt(e.total)}</span>
+          <button class="oe-remove" onclick="cartRemove(${e.uid})">×</button>
+        </div>
+      </div>
+      ${e.details.length?`<div class="oe-details">${e.details.join(' · ')}</div>`:''}
+    </div>`;
+  });
+
+  Object.entries(SC).forEach(([id,item])=>{
+    total+=item.price*item.qty; count+=item.qty;
+    html+=`<div class="order-entry">
+      <div class="oe-top">
+        <span class="oe-name">${item.name} <span style="color:var(--muted);font-size:10px">x${item.qty}</span></span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span class="oe-price">€${fmt(item.price*item.qty)}</span>
+          <button class="oe-remove" onclick="changeSQty('${id}',${-item.qty})">×</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  list.innerHTML=html;
+  document.getElementById('totalPrice').textContent='€'+fmt(total);
+  document.getElementById('mobileBadge').textContent=count;
+  totalDiv.style.display='block';
+}
+
+// ══════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════
+function openModal(){
+  let html='', total=0;
+  cart.forEach(e=>{
+    total+=e.total;
+    html+=`<div class="me"><div class="me-top"><span>${e.name}</span><span class="me-price">€${fmt(e.total)}</span></div>${e.details.length?`<div class="me-details">${e.details.join(' · ')}</div>`:''}</div>`;
+  });
+  Object.entries(SC).forEach(([id,item])=>{
+    total+=item.price*item.qty;
+    html+=`<div class="me"><div class="me-top"><span>${item.name} x${item.qty}</span><span class="me-price">€${fmt(item.price*item.qty)}</span></div></div>`;
+  });
+  document.getElementById('modalItems').innerHTML=html;
+  document.getElementById('modalTotal').textContent='€'+fmt(total);
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('orderPanel').classList.remove('open');
+  document.getElementById('orderOverlay').classList.remove('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function callNow(){ window.location.href='tel:0744878982'; }
+function togglePanel(){
+  document.getElementById('orderPanel').classList.toggle('open');
+  document.getElementById('orderOverlay').classList.toggle('open');
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+function fmt(n){ return n.toFixed(2).replace('.',','); }
+
+// ══════════════════════════════════════
+// PWA
+// ══════════════════════════════════════
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  if(!localStorage.getItem('installDismissed')) document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('btnInstall').addEventListener('click',async()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
+  deferredPrompt=null; document.getElementById('installBanner').classList.remove('show');
+});
+function dismissBanner(){
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('installDismissed','1');
+}
+</script>
+</body>
+</html>
